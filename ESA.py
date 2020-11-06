@@ -1,48 +1,22 @@
 import csv
 
-print('hello world')
-
-
-# csv file name 
-filename = "12345_ESA.csv"
-  
-# reading csv file 
+name = input("File Name:")
+filename = name + ".csv"
+ 
 with open(filename, 'r') as csvfile: 
     full_dict = {}
     reader = csv.DictReader(csvfile)
     for row in reader:
         full_dict.update(row)
 
-print("-----------------")
-print(full_dict)
-print("-----------------")
-print(list(full_dict.keys())[0])
-
-# full_dict = { x.translate({32:None}) : y for x, y in full_dict.items()}
-
-# full_dict = { x.translate({39:None}) : y for x, y in full_dict.items()}
-
-# full_dict = { x.translate({63:None}) : y for x, y in full_dict.items()}
 
 full_dict = { x.translate({32:None, 39:None, 40:None, 41:None, 63:None}) : y for x, y in full_dict.items()}
 
-
-print("-----------------")
-
-print("new dictionary: ", full_dict)
-print("-----------------")
-print(str(list(full_dict.keys())[53]))
-print(str(list(full_dict.values())[53])) 
-print(len(full_dict.keys()))
-
-
-
 import xml.etree.ElementTree as ET  
-  
-  
+
 def GenerateXML(fileName) : 
       
-    root = ET.Element("root") 
+    root = ET.Element("PCARecord") 
       
     m1 = ET.Element("FannieMaeIdentifiers") 
     root.append (m1) 
@@ -78,8 +52,6 @@ def GenerateXML(fileName) :
     d7 = ET.SubElement(m3, str(list(full_dict.keys())[10])) 
     d7.text = str(list(full_dict.values())[10])
 
-
-
     m4 = ET.Element("PropertyLocation") 
     root.append (m4) 
       
@@ -91,7 +63,6 @@ def GenerateXML(fileName) :
     e3.text = str(list(full_dict.values())[13])
     e4 = ET.SubElement(m4, str(list(full_dict.keys())[14])) 
     e4.text = str(list(full_dict.values())[14])
-
 
     m5 = ET.Element("PropertyDetails") 
     root.append (m5) 
@@ -112,7 +83,6 @@ def GenerateXML(fileName) :
     f7.text = str(list(full_dict.values())[21])
     f8 = ET.SubElement(m5, str(list(full_dict.keys())[22])) 
     f8.text = str(list(full_dict.values())[22])
-
 
     m6 = ET.Element("AssessmentDate") 
     root.append (m6) 
@@ -215,7 +185,10 @@ def GenerateXML(fileName) :
       
     with open (fileName, "wb") as files : 
         tree.write(files) 
-  
-# Driver Code 
+
+saveName = name + ".xml"
+
 if __name__ == "__main__":  
-    GenerateXML("test3.xml") 
+    GenerateXML(saveName) 
+
+print("Success!")

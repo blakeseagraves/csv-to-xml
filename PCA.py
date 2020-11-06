@@ -1,69 +1,28 @@
 import csv
+import re
 
-# # print('hello world')
-
-
-# # csv file name 
-# filename = "12345_PCA.csv"
-  
-
-# # print(len(full_dict))
-
-
-
-# csv file name 
-filename = "12345_PCA.csv"
-
+name = input("File Name:")
+filename = name + ".csv"
 
 with open(filename, 'r') as csvfile: 
     full_dict = {}
     reader = csv.DictReader(csvfile)
     full_dict = next(reader)
 
-    
-full_dict = { x.translate({32:None, 39:None, 40:None, 41:None, 45:None, 47:None, 63:None}) : y for x, y in full_dict.items()}
+full_dict = { x.translate({32:None, 39:None, 40:None, 41:None, 43:None, 45:None, 47:None, 63:None}) : y for x, y in full_dict.items()}
 
 keys = []
-valuess = []
+valuesInit = []
 values = []
+
 for i in full_dict:
     keys.append(i)
 
-
-valuess.append(full_dict.values())
-for i in valuess[0]:
+valuesInit.append(full_dict.values())
+for i in valuesInit[0]:
     values.append(i)
-print("-----------------")
-print(full_dict)
-print("-----------------")
-print(keys)
-print("-----------------")
-print(values)
-print("--------------------------------------------------")
-problematic = values[67:86]
-problematicK = keys[67:86]
-print(problematic)
-print(problematicK)
-print("-----------____________________-------------------")
-
-for zz in range(0, len(problematic)):
-    if problematic[zz] != "No":
-        print(zz, problematic[zz], problematicK[zz])
-    # print(str(problematic[zz].index(problematic)))
-    # print(problematic.index(zz))
 
 
-
-
-
-
-
-
-
-
-
-
-  
 with open(filename, 'r') as csvfile:
     csvLists = [] 
     reader = csv.reader(csvfile)
@@ -75,23 +34,18 @@ for list in csvLists:
     if list[3] == "IM":
         immediatesList.append(list[:7])
 
-
-
-
 reservesList = []
 for list in csvLists:
     if list[3] == "RR":
         reservesList.append(list[:23])
 
-print("---------------------")
-# key = next(full_dict.keys())
-# keylist = list(full_dict)
-# print(key)
+reservesList = [[re.sub('[^0-9a-zA-Z]+', '', x) for x in l] for l in reservesList]
+immediatesList = [[re.sub('[^0-9a-zA-Z]+', '', x) for x in l] for l in immediatesList]
 
 
 import xml.etree.ElementTree as ET
 
-# data = ET.Element('chess')
+
 top = ET.Element('PCARecord')
 
     
@@ -109,7 +63,7 @@ m2 = ET.Element("LenderInformation")
 top.append (m2) 
     
 c1 = ET.SubElement(m2, keys[3]) 
-c1.text = values[2]
+c1.text = values[3]
 c2 = ET.SubElement(m2, keys[4]) 
 c2.text = values[4]
     
@@ -262,10 +216,13 @@ h33.text = values[66]
 m8 = ET.Element("KnownProblematicBuildingMaterials") 
 top.append (m8) 
 
-for zz in range(0, len(problematic)):
-    if problematic[zz] != "No":
-        category = ET.Element(problematicK[zz])
-        category.text = problematic[zz]
+problematicValues = values[67:86]
+problematicKeys = keys[67:86]
+
+for zz in range(0, len(problematicValues)):
+    if problematicValues[zz] != "No":
+        category = ET.Element(problematicKeys[zz])
+        category.text = problematicValues[zz]
         m8.append (category)
 
 m9 = ET.Element("ImmediateRepairsEstimation") 
@@ -281,41 +238,27 @@ immediateTree = ET.Element("CriticalRepairs")
 m10.append (immediateTree)
 
 for i in range(0, len(immediatesList)):
-    # count = 1
     elem1 = ET.Element(immediatesList[i][5].replace(" ", "").replace(",", ""))
     immediateTree.append(elem1)
     elem2 = ET.SubElement(elem1, "CapitalItemAction")
     elem2.text = "IM"
     elem3 = ET.SubElement(elem1, "ImmediateRepairCost")
     elem3.text = immediatesList[i][6]
-    # count += 1 
-    # print(count)
 
-# reserveTree = ET.Element("reserves")
-# top.append (reserveTree)
 
-# for i in range(0, len(reservesList)):
-#     elem2 = ET.SubElement(reserveTree, "reserveRepair")
-#     elem2.text = reservesList[i][8]
-
-siteComponents = ET.Element("siteComponents")
+siteComponents = ET.Element("SiteComponents")
 m10.append (siteComponents)
 
-# x = str(reservesList[5][8].replace(" ", ""))
-# xy = ET.Element(x)
-# print(x)
-# siteComponents.append (xy)
-
 for i in range(0, len(reservesList)):
-    if reservesList[i][7] == "Site Components":
-        elem3 = ET.Element((reservesList[i][8].replace(" ", "").replace(",", "")))
-        siteComponents.append (elem3)
+    if "Site" in reservesList[i][7]:
+        elem4 = ET.Element((reservesList[i][8].replace(" ", "").replace(",", "")))
+        siteComponents.append (elem4)
 
         CapitalItemBasicElements = ET.Element("CapitalItemBasicElements")
-        elem3.append (CapitalItemBasicElements)
+        elem4.append (CapitalItemBasicElements)
 
-        elem4 = ET.SubElement(CapitalItemBasicElements, "capitalItemRemainingUsefulLife")
-        elem4.text = reservesList[i][10]
+        elem5 = ET.SubElement(CapitalItemBasicElements, "capitalItemRemainingUsefulLife")
+        elem5.text = reservesList[i][10]
 
         capitalItemAction = ET.Element("CapitalItemAction")
         capitalItemAction.text = ("RR")
@@ -324,67 +267,67 @@ for i in range(0, len(reservesList)):
         CapitalItem15YearProjection = ET.Element("CapitalItem15YearProjection")
         CapitalItemBasicElements.append (CapitalItem15YearProjection)
 
-        elem5 = ET.SubElement(CapitalItem15YearProjection, "capitalItemTotalCost")
-        elem5.text = reservesList[i][9]
+        elem6 = ET.SubElement(CapitalItem15YearProjection, "capitalItemTotalCost")
+        elem6.text = reservesList[i][9]
 
-        if reservesList[i][7] == "Site Components" and len(reservesList[i][11]) >= 1:
-            elem5 = ET.SubElement(CapitalItem15YearProjection, "capitalYearOne")
-            elem5.text = reservesList[i][11]
+        if "Site" in reservesList[i][7] and len(reservesList[i][11]) >= 1:
+            elem7 = ET.SubElement(CapitalItem15YearProjection, "capitalYearOne")
+            elem7.text = reservesList[i][11]
 
-        if reservesList[i][7] == "Site Components" and len(reservesList[i][12]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection, "capitalYearTwo")
-            elem6.text = reservesList[i][12]
+        if "Site" in reservesList[i][7] and len(reservesList[i][12]) >= 1:
+            elem8 = ET.SubElement(CapitalItem15YearProjection, "capitalYearTwo")
+            elem8.text = reservesList[i][12]
 
-        if reservesList[i][7] == "Site Components" and len(reservesList[i][13]) >= 1:
-            elem7 = ET.SubElement(CapitalItem15YearProjection, "capitalYearThree")
-            elem7.text = reservesList[i][13]
+        if "Site" in reservesList[i][7] and len(reservesList[i][13]) >= 1:
+            elem9 = ET.SubElement(CapitalItem15YearProjection, "capitalYearThree")
+            elem9.text = reservesList[i][13]
 
-        if reservesList[i][7] == "Site Components" and len(reservesList[i][14]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection, "capitalYearFour")
-            elem6.text = reservesList[i][14]
+        if "Site" in reservesList[i][7] and len(reservesList[i][14]) >= 1:
+            elem10 = ET.SubElement(CapitalItem15YearProjection, "capitalYearFour")
+            elem10.text = reservesList[i][14]
 
-        if reservesList[i][7] == "Site Components" and len(reservesList[i][15]) >= 1:
-            elem5 = ET.SubElement(CapitalItem15YearProjection, "capitalYearFive")
-            elem5.text = reservesList[i][15]
+        if "Site" in reservesList[i][7] and len(reservesList[i][15]) >= 1:
+            elem11 = ET.SubElement(CapitalItem15YearProjection, "capitalYearFive")
+            elem11.text = reservesList[i][15]
 
-        if reservesList[i][7] == "Site Components" and len(reservesList[i][16]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection, "capitalYearSix")
-            elem6.text = reservesList[i][16]
+        if "Site" in reservesList[i][7] and len(reservesList[i][16]) >= 1:
+            elem12 = ET.SubElement(CapitalItem15YearProjection, "capitalYearSix")
+            elem12.text = reservesList[i][16]
 
-        if reservesList[i][7] == "Site Components" and len(reservesList[i][17]) >= 1:
-            elem7 = ET.SubElement(CapitalItem15YearProjection, "capitalYearSeven")
-            elem7.text = reservesList[i][17]
+        if "Site" in reservesList[i][7] and len(reservesList[i][17]) >= 1:
+            elem13 = ET.SubElement(CapitalItem15YearProjection, "capitalYearSeven")
+            elem13.text = reservesList[i][17]
 
-        if reservesList[i][7] == "Site Components" and len(reservesList[i][18]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection, "capitalYearEight")
-            elem6.text = reservesList[i][18]
+        if "Site" in reservesList[i][7] and len(reservesList[i][18]) >= 1:
+            elem14 = ET.SubElement(CapitalItem15YearProjection, "capitalYearEight")
+            elem14.text = reservesList[i][18]
 
-        if reservesList[i][7] == "Site Components" and len(reservesList[i][19]) >= 1:
-            elem5 = ET.SubElement(CapitalItem15YearProjection, "capitalYearNine")
-            elem5.text = reservesList[i][19]
+        if "Site" in reservesList[i][7] and len(reservesList[i][19]) >= 1:
+            elem15 = ET.SubElement(CapitalItem15YearProjection, "capitalYearNine")
+            elem15.text = reservesList[i][19]
 
-        if reservesList[i][7] == "Site Components" and len(reservesList[i][20]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection, "capitalYearTen")
-            elem6.text = reservesList[i][20]
+        if "Site" in reservesList[i][7] and len(reservesList[i][20]) >= 1:
+            elem16 = ET.SubElement(CapitalItem15YearProjection, "capitalYearTen")
+            elem16.text = reservesList[i][20]
 
-        if reservesList[i][7] == "Site Components" and len(reservesList[i][21]) >= 1:
-            elem7 = ET.SubElement(CapitalItem15YearProjection, "capitalYearEleven")
-            elem7.text = reservesList[i][21]
+        if "Site" in reservesList[i][7] and len(reservesList[i][21]) >= 1:
+            elem17 = ET.SubElement(CapitalItem15YearProjection, "capitalYearEleven")
+            elem17.text = reservesList[i][21]
 
-        if reservesList[i][7] == "Site Components" and len(reservesList[i][22]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection, "capitalYearTwelve")
-            elem6.text = reservesList[i][22]
+        if "Site" in reservesList[i][7] and len(reservesList[i][22]) >= 1:
+            elem18 = ET.SubElement(CapitalItem15YearProjection, "capitalYearTwelve")
+            elem18.text = reservesList[i][22]
 
 structuralFrame = ET.Element("StructuralFrameAndBuildingEnvelopeArchitecturalComponents")
 m10.append (structuralFrame)
 
 for i in range(0, len(reservesList)):
-    if reservesList[i][7] == "Structural Frame And Building Envelope Architectural Components":
-        category2 = ET.Element((reservesList[i][8].replace(" ", "").replace(",", "")))
-        structuralFrame.append (category2)
+    if "Architectural" in reservesList[i][7]:
+        elem19 = ET.Element((reservesList[i][8].replace(" ", "").replace(",", "")))
+        structuralFrame.append (elem19)
 
         CapitalItemBasicElements2 = ET.Element("CapitalItemBasicElements")
-        category2.append (CapitalItemBasicElements2)
+        elem19.append (CapitalItemBasicElements2)
 
         capitalItemRemainingUsefulLife2 = ET.SubElement(CapitalItemBasicElements2, "capitalItemRemainingUsefulLife")
         capitalItemRemainingUsefulLife2.text = reservesList[i][10]
@@ -396,62 +339,63 @@ for i in range(0, len(reservesList)):
         CapitalItem15YearProjection2 = ET.Element("CapitalItem15YearProjection")
         CapitalItemBasicElements2.append (CapitalItem15YearProjection2)
 
-        elem5 = ET.SubElement(CapitalItem15YearProjection2, "capitalItemTotalCost")
-        elem5.text = reservesList[i][9]
+        elem20 = ET.SubElement(CapitalItem15YearProjection2, "capitalItemTotalCost")
+        elem20.text = reservesList[i][9]
 
-        if reservesList[i][7] =="Structural Frame And Building Envelope Architectural Components" and len(reservesList[i][11]) >= 1:
-            elem5 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearOne")
-            elem5.text = reservesList[i][11]
+        if "Architectural" in reservesList[i][7] and len(reservesList[i][11]) >= 1:
+            elem21 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearOne")
+            elem21.text = reservesList[i][11]
 
-        if reservesList[i][7] == "Structural Frame And Building Envelope Architectural Components" and len(reservesList[i][12]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearTwo")
-            elem6.text = reservesList[i][12]
+        if "Architectural" in reservesList[i][7] and len(reservesList[i][12]) >= 1:
+            elem22 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearTwo")
+            elem22.text = reservesList[i][12]
 
-        if reservesList[i][7] == "Structural Frame And Building Envelope Architectural Components" and len(reservesList[i][13]) >= 1:
-            elem7 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearThree")
-            elem7.text = reservesList[i][13]
+        if "Architectural" in reservesList[i][7] and len(reservesList[i][13]) >= 1:
+            elem23 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearThree")
+            elem23.text = reservesList[i][13]
 
-        if reservesList[i][7] == "Structural Frame And Building Envelope Architectural Components" and len(reservesList[i][14]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearFour")
-            elem6.text = reservesList[i][14]
+        if "Architectural" in reservesList[i][7] and len(reservesList[i][14]) >= 1:
+            elem24 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearFour")
+            elem24.text = reservesList[i][14]
 
-        if reservesList[i][7] == "Structural Frame And Building Envelope Architectural Components" and len(reservesList[i][15]) >= 1:
-            elem5 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearFive")
-            elem5.text = reservesList[i][15]
+        if "Architectural" in reservesList[i][7] and len(reservesList[i][15]) >= 1:
+            elem25 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearFive")
+            elem25.text = reservesList[i][15]
 
-        if reservesList[i][7] == "Structural Frame And Building Envelope Architectural Components" and len(reservesList[i][16]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearSix")
-            elem6.text = reservesList[i][16]
+        if "Architectural" in reservesList[i][7] and len(reservesList[i][16]) >= 1:
+            elem26 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearSix")
+            elem26.text = reservesList[i][16]
 
-        if reservesList[i][7] == "Structural Frame And Building Envelope Architectural Components" and len(reservesList[i][17]) >= 1:
-            elem7 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearSeven")
-            elem7.text = reservesList[i][17]
+        if "Architectural" in reservesList[i][7] and len(reservesList[i][17]) >= 1:
+            elem27 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearSeven")
+            elem27.text = reservesList[i][17]
 
-        if reservesList[i][7] == "Structural Frame And Building Envelope Architectural Components" and len(reservesList[i][18]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearEight")
-            elem6.text = reservesList[i][18]
+        if "Architectural" in reservesList[i][7] and len(reservesList[i][18]) >= 1:
+            elem28 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearEight")
+            elem28.text = reservesList[i][18]
 
-        if reservesList[i][7] == "Structural Frame And Building Envelope Architectural Components" and len(reservesList[i][19]) >= 1:
-            elem5 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearNine")
-            elem5.text = reservesList[i][19]
+        if "Architectural" in reservesList[i][7] and len(reservesList[i][19]) >= 1:
+            elem29 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearNine")
+            elem29.text = reservesList[i][19]
 
-        if reservesList[i][7] == "Structural Frame And Building Envelope Architectural Components" and len(reservesList[i][20]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearTen")
-            elem6.text = reservesList[i][20]
+        if "Architectural" in reservesList[i][7] and len(reservesList[i][20]) >= 1:
+            elem30 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearTen")
+            elem30.text = reservesList[i][20]
 
-        if reservesList[i][7] == "Structural Frame And Building Envelope Architectural Components" and len(reservesList[i][21]) >= 1:
-            elem7 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearEleven")
-            elem7.text = reservesList[i][21]
+        if "Architectural" in reservesList[i][7] and len(reservesList[i][21]) >= 1:
+            elem31 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearEleven")
+            elem31.text = reservesList[i][21]
 
-        if reservesList[i][7] == "Structural Frame And Building Envelope Architectural Components" and len(reservesList[i][22]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearTwelve")
-            elem6.text = reservesList[i][22]
+        if "Architectural" in reservesList[i][7] and len(reservesList[i][22]) >= 1:
+            elem32 = ET.SubElement(CapitalItem15YearProjection2, "capitalYearTwelve")
+            elem32.text = reservesList[i][22]
+
 
 mechanicalElectrical = ET.Element("MechanicalElectricalAndPlumbingSystems")
 m10.append (mechanicalElectrical)
 
 for i in range(0, len(reservesList)):
-    if reservesList[i][7] == "Mechanical Electrical And Plumbing Systems":
+    if "Mechanical" in reservesList[i][7]:
         category3 = ET.Element((reservesList[i][8].replace(" ", "").replace(",", "")))
         mechanicalElectrical.append (category3)
 
@@ -468,70 +412,73 @@ for i in range(0, len(reservesList)):
         CapitalItem15YearProjection3 = ET.Element("CapitalItem15YearProjection")
         CapitalItemBasicElements3.append (CapitalItem15YearProjection3)
 
-        elem5 = ET.SubElement(CapitalItem15YearProjection3, "capitalItemTotalCost")
-        elem5.text = reservesList[i][9]
+        elem33 = ET.SubElement(CapitalItem15YearProjection3, "capitalItemTotalCost")
+        elem33.text = reservesList[i][9]
 
-        if reservesList[i][7] == "Mechanical Electrical And Plumbing Systems" and len(reservesList[i][11]) >= 1:
-            elem5 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearOne")
-            elem5.text = reservesList[i][11]
+        if "Mechanical" in reservesList[i][7] and len(reservesList[i][11]) >= 1:
+            elem34 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearOne")
+            elem34.text = reservesList[i][11]
 
-        if reservesList[i][7] == "Mechanical Electrical And Plumbing Systems" and len(reservesList[i][12]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearTwo")
-            elem6.text = reservesList[i][12]
+        if "Mechanical" in reservesList[i][7] and len(reservesList[i][12]) >= 1:
+            elem35 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearTwo")
+            elem35.text = reservesList[i][12]
 
-        if reservesList[i][7] == "Mechanical Electrical And Plumbing Systems" and len(reservesList[i][13]) >= 1:
-            elem7 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearThree")
-            elem7.text = reservesList[i][13]
+        if "Mechanical" in reservesList[i][7] and len(reservesList[i][13]) >= 1:
+            elem36 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearThree")
+            elem36.text = reservesList[i][13]
 
-        if reservesList[i][7] == "Mechanical Electrical And Plumbing Systems" and len(reservesList[i][14]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearFour")
-            elem6.text = reservesList[i][14]
+        if "Mechanical" in reservesList[i][7] and len(reservesList[i][14]) >= 1:
+            elem37 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearFour")
+            elem37.text = reservesList[i][14]
 
-        if reservesList[i][7] == "Mechanical Electrical And Plumbing Systems" and len(reservesList[i][15]) >= 1:
-            elem5 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearFive")
-            elem5.text = reservesList[i][15]
+        if "Mechanical" in reservesList[i][7] and len(reservesList[i][15]) >= 1:
+            elem38 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearFive")
+            elem38.text = reservesList[i][15]
 
-        if reservesList[i][7] == "Mechanical Electrical And Plumbing Systems" and len(reservesList[i][16]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearSix")
-            elem6.text = reservesList[i][16]
+        if "Mechanical" in reservesList[i][7] and len(reservesList[i][16]) >= 1:
+            elem39 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearSix")
+            elem39.text = reservesList[i][16]
 
-        if reservesList[i][7] == "Mechanical Electrical And Plumbing Systems" and len(reservesList[i][17]) >= 1:
-            elem7 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearSeven")
-            elem7.text = reservesList[i][17]
+        if "Mechanical" in reservesList[i][7] and len(reservesList[i][17]) >= 1:
+            elem40 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearSeven")
+            elem40.text = reservesList[i][17]
 
-        if reservesList[i][7] == "Mechanical Electrical And Plumbing Systems" and len(reservesList[i][18]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearEight")
-            elem6.text = reservesList[i][18]
+        if "Mechanical" in reservesList[i][7] and len(reservesList[i][18]) >= 1:
+            elem41 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearEight")
+            elem41.text = reservesList[i][18]
 
-        if reservesList[i][7] == "Mechanical Electrical And Plumbing Systems" and len(reservesList[i][19]) >= 1:
-            elem5 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearNine")
-            elem5.text = reservesList[i][19]
+        if "Mechanical" in reservesList[i][7] and len(reservesList[i][19]) >= 1:
+            elem42 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearNine")
+            elem42.text = reservesList[i][19]
 
-        if reservesList[i][7] == "Mechanical Electrical And Plumbing Systems" and len(reservesList[i][20]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearTen")
-            elem6.text = reservesList[i][20]
+        if "Mechanical" in reservesList[i][7] and len(reservesList[i][20]) >= 1:
+            elem43 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearTen")
+            elem43.text = reservesList[i][20]
 
-        if reservesList[i][7] == "Mechanical Electrical And Plumbing Systems" and len(reservesList[i][21]) >= 1:
-            elem7 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearEleven")
-            elem7.text = reservesList[i][21]
+        if "Mechanical" in reservesList[i][7] and len(reservesList[i][21]) >= 1:
+            elem44 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearEleven")
+            elem44.text = reservesList[i][21]
 
-        if reservesList[i][7] == "Mechanical Electrical And Plumbing Systems" and len(reservesList[i][22]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearTwelve")
-            elem6.text = reservesList[i][22]
+        if "Mechanical" in reservesList[i][7] and len(reservesList[i][22]) >= 1:
+            elem45 = ET.SubElement(CapitalItem15YearProjection3, "capitalYearTwelve")
+            elem45.text = reservesList[i][22]
 
-interiorElements = ET.Element("InteriorElementsDwellingUnitsAndCommonAreas")
-m10.append (interiorElements)
 
 for i in range(0, len(reservesList)):
-    if reservesList[i][7] == "Interior Elements Dwelling Units And Common Areas":
+    if "Vertical" in reservesList[i][7]:
+        verticalTransportation = ET.Element("VerticalTransportation")
+        m10.append (verticalTransportation)
+
+for i in range(0, len(reservesList)):
+    if "Vertical" in reservesList[i][7]:
         category4 = ET.Element((reservesList[i][8].replace(" ", "").replace(",", "")))
-        interiorElements.append (category4)
+        verticalTransportation.append (category4)
 
         CapitalItemBasicElements4 = ET.Element("CapitalItemBasicElements")
         category4.append (CapitalItemBasicElements4)
 
-        capitalItemRemainingUsefulLife3 = ET.SubElement(CapitalItemBasicElements4, "capitalItemRemainingUsefulLife")
-        capitalItemRemainingUsefulLife3.text = reservesList[i][10]
+        capitalItemRemainingUsefulLife4 = ET.SubElement(CapitalItemBasicElements4, "capitalItemRemainingUsefulLife")
+        capitalItemRemainingUsefulLife4.text = reservesList[i][10]
 
         capitalItemAction = ET.Element("CapitalItemAction")
         capitalItemAction.text = ("RR")
@@ -540,55 +487,203 @@ for i in range(0, len(reservesList)):
         CapitalItem15YearProjection4 = ET.Element("CapitalItem15YearProjection")
         CapitalItemBasicElements4.append (CapitalItem15YearProjection4)
 
-        elem5 = ET.SubElement(CapitalItem15YearProjection4, "capitalItemTotalCost")
+        elem46 = ET.SubElement(CapitalItem15YearProjection4, "capitalItemTotalCost")
+        elem46.text = reservesList[i][9]
+
+        if "Vertical" in reservesList[i][7] and len(reservesList[i][11]) >= 1:
+            elem47 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearOne")
+            elem47.text = reservesList[i][11]
+
+        if "Vertical" in reservesList[i][7] and len(reservesList[i][12]) >= 1:
+            elem48 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearTwo")
+            elem48.text = reservesList[i][12]
+
+        if "Vertical" in reservesList[i][7] and len(reservesList[i][13]) >= 1:
+            elem49 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearThree")
+            elem49.text = reservesList[i][13]
+
+        if "Vertical" in reservesList[i][7] and len(reservesList[i][14]) >= 1:
+            elem50 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearFour")
+            elem50.text = reservesList[i][14]
+
+        if "Vertical" in reservesList[i][7] and len(reservesList[i][15]) >= 1:
+            elem51 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearFive")
+            elem51.text = reservesList[i][15]
+
+        if "Vertical" in reservesList[i][7] and len(reservesList[i][16]) >= 1:
+            elem52 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearSix")
+            elem52.text = reservesList[i][16]
+
+        if "Vertical" in reservesList[i][7] and len(reservesList[i][17]) >= 1:
+            elem53 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearSeven")
+            elem53.text = reservesList[i][17]
+
+        if "Vertical" in reservesList[i][7] and len(reservesList[i][18]) >= 1:
+            elem54 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearEight")
+            elem54.text = reservesList[i][18]
+
+        if "Vertical" in reservesList[i][7] and len(reservesList[i][19]) >= 1:
+            elem55 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearNine")
+            elem55.text = reservesList[i][19]
+
+        if "Vertical" in reservesList[i][7] and len(reservesList[i][20]) >= 1:
+            elem56 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearTen")
+            elem56.text = reservesList[i][20]
+
+        if "Vertical" in reservesList[i][7] and len(reservesList[i][21]) >= 1:
+            elem57 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearEleven")
+            elem57.text = reservesList[i][21]
+
+        if "Vertical" in reservesList[i][7] and len(reservesList[i][22]) >= 1:
+            elem58 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearTwelve")
+            elem58.text = reservesList[i][22]
+
+
+for i in range(0, len(reservesList)):
+    if "Safety" in reservesList[i][7]:
+        lifeSafety = ET.Element("LifeSafetyFireProtection")
+        m10.append (lifeSafety)
+
+for i in range(0, len(reservesList)):
+    if "Safety" in reservesList[i][7]:
+        category5 = ET.Element((reservesList[i][8].replace(" ", "").replace(",", "")))
+        lifeSafety.append (category5)
+
+        CapitalItemBasicElements5 = ET.Element("CapitalItemBasicElements")
+        category5.append (CapitalItemBasicElements5)
+
+        capitalItemRemainingUsefulLife5 = ET.SubElement(CapitalItemBasicElements5, "capitalItemRemainingUsefulLife")
+        capitalItemRemainingUsefulLife5.text = reservesList[i][10]
+
+        capitalItemAction = ET.Element("CapitalItemAction")
+        capitalItemAction.text = ("RR")
+        CapitalItemBasicElements5.append (capitalItemAction)
+
+        CapitalItem15YearProjection5 = ET.Element("CapitalItem15YearProjection")
+        CapitalItemBasicElements5.append (CapitalItem15YearProjection5)
+
+        elem59 = ET.SubElement(CapitalItem15YearProjection5, "capitalItemTotalCost")
+        elem59.text = reservesList[i][9]
+
+        if "Safety" in reservesList[i][7] and len(reservesList[i][11]) >= 1:
+            elem60 = ET.SubElement(CapitalItem15YearProjection5, "capitalYearOne")
+            elem60.text = reservesList[i][11]
+
+        if "Safety" in reservesList[i][7] and len(reservesList[i][12]) >= 1:
+            elem61 = ET.SubElement(CapitalItem15YearProjection5, "capitalYearTwo")
+            elem61.text = reservesList[i][12]
+
+        if "Safety" in reservesList[i][7] and len(reservesList[i][13]) >= 1:
+            elem62 = ET.SubElement(CapitalItem15YearProjection5, "capitalYearThree")
+            elem62.text = reservesList[i][13]
+
+        if "Safety" in reservesList[i][7] and len(reservesList[i][14]) >= 1:
+            elem63 = ET.SubElement(CapitalItem15YearProjection5, "capitalYearFour")
+            elem63.text = reservesList[i][14]
+
+        if "Safety" in reservesList[i][7] and len(reservesList[i][15]) >= 1:
+            elem64 = ET.SubElement(CapitalItem15YearProjection5, "capitalYearFive")
+            elem64.text = reservesList[i][15]
+
+        if "Safety" in reservesList[i][7] and len(reservesList[i][16]) >= 1:
+            elem65 = ET.SubElement(CapitalItem15YearProjection5, "capitalYearSix")
+            elem65.text = reservesList[i][16]
+
+        if "Safety" in reservesList[i][7] and len(reservesList[i][17]) >= 1:
+            elem66 = ET.SubElement(CapitalItem15YearProjection5, "capitalYearSeven")
+            elem66.text = reservesList[i][17]
+
+        if "Safety" in reservesList[i][7] and len(reservesList[i][18]) >= 1:
+            elem67 = ET.SubElement(CapitalItem15YearProjection5, "capitalYearEight")
+            elem67.text = reservesList[i][18]
+
+        if "Safety" in reservesList[i][7] and len(reservesList[i][19]) >= 1:
+            elem68 = ET.SubElement(CapitalItem15YearProjection5, "capitalYearNine")
+            elem68.text = reservesList[i][19]
+
+        if "Safety" in reservesList[i][7] and len(reservesList[i][20]) >= 1:
+            elem69 = ET.SubElement(CapitalItem15YearProjection5, "capitalYearTen")
+            elem69.text = reservesList[i][20]
+
+        if "Safety" in reservesList[i][7] and len(reservesList[i][21]) >= 1:
+            elem70 = ET.SubElement(CapitalItem15YearProjection5, "capitalYearEleven")
+            elem70.text = reservesList[i][21]
+
+        if "Safety" in reservesList[i][7] and len(reservesList[i][22]) >= 1:
+            elem71 = ET.SubElement(CapitalItem15YearProjection5, "capitalYearTwelve")
+            elem71.text = reservesList[i][22]
+
+
+interiorElements = ET.Element("InteriorElementsDwellingUnitsAndCommonAreas")
+m10.append (interiorElements)
+
+for i in range(0, len(reservesList)):
+    if "Dwelling" in reservesList[i][7]:
+        category6 = ET.Element((reservesList[i][8].replace(" ", "").replace(",", "")))
+        interiorElements.append (category6)
+
+        CapitalItemBasicElements6 = ET.Element("CapitalItemBasicElements")
+        category6.append (CapitalItemBasicElements6)
+
+        capitalItemRemainingUsefulLife6 = ET.SubElement(CapitalItemBasicElements6, "capitalItemRemainingUsefulLife")
+        capitalItemRemainingUsefulLife6.text = reservesList[i][10]
+
+        capitalItemAction = ET.Element("CapitalItemAction")
+        capitalItemAction.text = ("RR")
+        CapitalItemBasicElements6.append (capitalItemAction)
+
+        CapitalItem15YearProjection6 = ET.Element("CapitalItem15YearProjection")
+        CapitalItemBasicElements6.append (CapitalItem15YearProjection6)
+
+        elem5 = ET.SubElement(CapitalItem15YearProjection6, "capitalItemTotalCost")
         elem5.text = reservesList[i][9]
 
-        if reservesList[i][7] == "Interior Elements Dwelling Units And Common Areas" and len(reservesList[i][11]) >= 1:
-            elem5 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearOne")
+        if "Dwelling" in reservesList[i][7] and len(reservesList[i][11]) >= 1:
+            elem5 = ET.SubElement(CapitalItem15YearProjection6, "capitalYearOne")
             elem5.text = reservesList[i][11]
 
-        if reservesList[i][7] == "Interior Elements Dwelling Units And Common Areas" and len(reservesList[i][12]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearTwo")
+        if "Dwelling" in reservesList[i][7] and len(reservesList[i][12]) >= 1:
+            elem6 = ET.SubElement(CapitalItem15YearProjection6, "capitalYearTwo")
             elem6.text = reservesList[i][12]
 
-        if reservesList[i][7] == "Interior Elements Dwelling Units And Common Areas" and len(reservesList[i][13]) >= 1:
-            elem7 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearThree")
+        if "Dwelling" in reservesList[i][7] and len(reservesList[i][13]) >= 1:
+            elem7 = ET.SubElement(CapitalItem15YearProjection6, "capitalYearThree")
             elem7.text = reservesList[i][13]
 
-        if reservesList[i][7] == "Interior Elements Dwelling Units And Common Areas" and len(reservesList[i][14]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearFour")
+        if "Dwelling" in reservesList[i][7] and len(reservesList[i][14]) >= 1:
+            elem6 = ET.SubElement(CapitalItem15YearProjection6, "capitalYearFour")
             elem6.text = reservesList[i][14]
 
-        if reservesList[i][7] == "Interior Elements Dwelling Units And Common Areas" and len(reservesList[i][15]) >= 1:
-            elem5 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearFive")
+        if "Dwelling" in reservesList[i][7] and len(reservesList[i][15]) >= 1:
+            elem5 = ET.SubElement(CapitalItem15YearProjection6, "capitalYearFive")
             elem5.text = reservesList[i][15]
 
-        if reservesList[i][7] == "Interior Elements Dwelling Units And Common Areas" and len(reservesList[i][16]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearSix")
+        if "Dwelling" in reservesList[i][7] and len(reservesList[i][16]) >= 1:
+            elem6 = ET.SubElement(CapitalItem15YearProjection6, "capitalYearSix")
             elem6.text = reservesList[i][16]
 
-        if reservesList[i][7] == "Interior Elements Dwelling Units And Common Areas" and len(reservesList[i][17]) >= 1:
-            elem7 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearSeven")
+        if "Dwelling" in reservesList[i][7] and len(reservesList[i][17]) >= 1:
+            elem7 = ET.SubElement(CapitalItem15YearProjection6, "capitalYearSeven")
             elem7.text = reservesList[i][17]
 
-        if reservesList[i][7] == "Interior Elements Dwelling Units And Common Areas" and len(reservesList[i][18]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearEight")
+        if "Dwelling" in reservesList[i][7] and len(reservesList[i][18]) >= 1:
+            elem6 = ET.SubElement(CapitalItem15YearProjection6, "capitalYearEight")
             elem6.text = reservesList[i][18]
 
-        if reservesList[i][7] == "Interior Elements Dwelling Units And Common Areas" and len(reservesList[i][19]) >= 1:
-            elem5 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearNine")
+        if "Dwelling" in reservesList[i][7] and len(reservesList[i][19]) >= 1:
+            elem5 = ET.SubElement(CapitalItem15YearProjection6, "capitalYearNine")
             elem5.text = reservesList[i][19]
 
-        if reservesList[i][7] == "Interior Elements Dwelling Units And Common Areas" and len(reservesList[i][20]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearTen")
+        if "Dwelling" in reservesList[i][7] and len(reservesList[i][20]) >= 1:
+            elem6 = ET.SubElement(CapitalItem15YearProjection6, "capitalYearTen")
             elem6.text = reservesList[i][20]
 
-        if reservesList[i][7] == "Interior Elements Dwelling Units And Common Areas" and len(reservesList[i][21]) >= 1:
-            elem7 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearEleven")
+        if "Dwelling" in reservesList[i][7] and len(reservesList[i][21]) >= 1:
+            elem7 = ET.SubElement(CapitalItem15YearProjection6, "capitalYearEleven")
             elem7.text = reservesList[i][21]
 
-        if reservesList[i][7] == "Interior Elements Dwelling Units And Common Areas" and len(reservesList[i][22]) >= 1:
-            elem6 = ET.SubElement(CapitalItem15YearProjection4, "capitalYearTwelve")
+        if "Dwelling" in reservesList[i][7] and len(reservesList[i][22]) >= 1:
+            elem6 = ET.SubElement(CapitalItem15YearProjection6, "capitalYearTwelve")
             elem6.text = reservesList[i][22]
         
 
@@ -602,40 +697,10 @@ j2.text = values[88]
 j3 = ET.SubElement(m11, keys[89])
 j3.text = values[89]
 
-
+saveName = name + ".xml"
 tree = ET.ElementTree(top)
-with open("employees.xml", "wb") as fh:
+with open(saveName, "wb") as fh:
     tree.write(fh)
   
 
-
-
-
-
-
-
-
-# # Adding a subtag named `Opening` 
-# # inside our root tag 
-# element1 = ET.SubElement(data, 'Opening') 
-  
-# # Adding subtags under the `Opening` 
-# # subtag  
-# # s_elem1 = ET.SubElement(element1, 'E4') 
-# # s_elem2 = ET.SubElement(element1, 'D4') 
-# makeNumber()
-  
-  
-# # Adding text between the `E4` and `D5`  
-# # subtag 
-# makeNumber()
-  
-# # Converting the xml data to byte object, 
-# # for allowing flushing data to file  
-# # stream 
-# b_xml = ET.tostring(data) 
-  
-# # Opening a file under the name `items2.xml`, 
-# # with operation mode `wb` (write + binary) 
-# with open("GFG.xml", "wb") as f: 
-#     f.write(b_xml) 
+print("Success!")
