@@ -1,7 +1,8 @@
 import csv
 import re
 
-name = input("File Name:")
+
+name = input("PCA File Name:")
 filename = name + ".csv"
 
 with open(filename, 'r') as csvfile: 

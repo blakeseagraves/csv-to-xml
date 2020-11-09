@@ -1,6 +1,6 @@
 import csv
 
-name = input("File Name:")
+name = input("ESA File Name:")
 filename = name + ".csv"
  
 with open(filename, 'r') as csvfile: 
